@@ -39,7 +39,7 @@ int main (void) {
 
     for (int i = 0; i < 6; i++) {
         if (ast_read_efivar (buffer, 4096, EFIGlobalVariableNamespace, vars[i])) {
-            printf ("%s: %s", vars[i], buffer);
+            printf ("%s: %s\n", vars[i], buffer);
         } else {
             fprintf (stderr, "Failed to read %s!\n", vars[i]);
         }
