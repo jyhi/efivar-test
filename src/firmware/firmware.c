@@ -95,14 +95,23 @@ int ast_write_efivar (char *value, char *guid, char *name)
 
 static int _ast_get_firmware_type_on_win8_or_greater (enum AST_FIRMWARE_TYPE *T)
 {
+    // NOTE: Directly using GetFirmwareType can make program being not able to run on lower version of Windows.
+    BOOL (*func)() = NULL;
     FIRMWARE_TYPE type = FirmwareTypeUnknown;
-    if (GetFirmwareType (&type)) {
-        // AST_FIRMWARE_TYPE declares the same values as FIRMWARE_TYPE
-        *T = type;
-        return EXIT_SUCCESS;
+
+    func = (BOOL (*)()) GetProcAddress (GetModuleHandle ("Kernel32.dll"), "GetFirmwareType");
+    if (func != NULL) {
+        if (func (&type)) {
+            // AST_FIRMWARE_TYPE declares the same values as FIRMWARE_TYPE
+            *T = type;
+            return EXIT_SUCCESS;
+        } else {
+            fprintf (stderr, " ** GetFirmwareType failed with error %lu.\n", GetLastError ());
+            return EXIT_FAILURE;
+        }
     } else {
-        fprintf (stderr, " ** GetFirmwareType failed with error %lu.\n", GetLastError ());
-        return EXIT_FAILURE;
+        // func == NULL. XXX: execute _ast_get_firmware_type_on_win8_lesser automatically.
+        return _ast_get_firmware_type_on_win8_lesser (T);
     }
 
     return EXIT_FAILURE;
