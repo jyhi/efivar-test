@@ -62,7 +62,7 @@ int ast_read_efivar (char *var, size_t bufSiz, char *guid, char *name);
  * returns AST_RETURN_OPERATION_FAILED and you should take measures to save the firmware.
  *
  * @param value [in] Value to be put into the specified EFI variable.
- * @param uuid  [in] GUID namespace.
+ * @param guid  [in] GUID namespace.
  * @param name  [in] Variable name.
  * @return EXIT_SUCCESS if operation succeeded, or particular return code may return.
  *
