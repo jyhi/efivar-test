@@ -25,7 +25,7 @@ static int _ast_privilege_do (char *privName, DWORD attr);
 
 int ast_privilege_obtain (char *privName)
 {
-    if (_ast_privilege_do (privName, SE_PRIVILEGE_ENABLED)) {
+    if (_ast_privilege_do (privName, SE_PRIVILEGE_ENABLED) == EXIT_SUCCESS) {
         return EXIT_SUCCESS;
     } else {
         return EXIT_FAILURE;
@@ -38,7 +38,7 @@ int ast_privilege_obtain (char *privName)
 
 int ast_privilege_remove (char *privName)
 {
-    if (_ast_privilege_do (privName, AST_PRIVILEGE_DISABLED)) { // AST_PRIVILEGE_DISABLED = 0
+    if (_ast_privilege_do (privName, AST_PRIVILEGE_DISABLED) == EXIT_SUCCESS) { // AST_PRIVILEGE_DISABLED = 0
         return EXIT_SUCCESS;
     } else {
         return EXIT_FAILURE;

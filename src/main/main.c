@@ -30,7 +30,7 @@ int main (void) {
 
     puts ("========== Your machine's UEFI information is as follows:\n");
 
-    if (ast_get_firmware_type (&type)) {
+    if (ast_get_firmware_type (&type) == EXIT_SUCCESS) {
         printf ("Firmware type: %d\n", (int)type);
     } else {
         printf ("Failed to get firmware type! exit.\n");
@@ -38,7 +38,7 @@ int main (void) {
     }
 
     for (int i = 0; i < 6; i++) {
-        if (ast_read_efivar (buffer, 4096, EFIGlobalVariableNamespace, vars[i])) {
+        if (ast_read_efivar (buffer, 4096, EFIGlobalVariableNamespace, vars[i]) == EXIT_SUCCESS) {
             printf ("%s: %s\n", vars[i], buffer);
         } else {
             fprintf (stderr, "Failed to read %s!\n", vars[i]);

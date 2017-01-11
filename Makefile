@@ -1,7 +1,7 @@
 HOST = x86_64-w64-mingw32
 CC   = ${HOST}-gcc
 LD   = ${HOST}-gcc
-AR   = ${HOST}-ar
+AR   = ${HOST}-gcc-ar
 
 DOXYGEN = doxygen
 

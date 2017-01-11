@@ -31,14 +31,14 @@ int ast_get_firmware_type (enum AST_FIRMWARE_TYPE *type)
     //   Use GetFirmwareType on newer Windows, or the traditional way -- passing dummy UUID
     //   and variable name to GetFirmwareEnvironmentVariable and check return value.
     if (IsWindows8OrGreater () == TRUE) {
-        if (_ast_get_firmware_type_on_win8_or_greater (type)) {
+        if (_ast_get_firmware_type_on_win8_or_greater (type) == EXIT_SUCCESS) {
             return EXIT_SUCCESS;
         } else {
             fprintf (stderr, " ** cannot get firmware type.\n");
             return EXIT_FAILURE;
         }
     } else {
-        if (_ast_get_firmware_type_on_win8_lesser (type)) {
+        if (_ast_get_firmware_type_on_win8_lesser (type) == EXIT_SUCCESS) {
             return EXIT_SUCCESS;
         } else {
             fprintf(stderr, " ** cannot get firmware type.\n");
@@ -56,7 +56,7 @@ int ast_get_firmware_type (enum AST_FIRMWARE_TYPE *type)
 int ast_read_efivar (char *var, size_t bufSiz, char *guid, char *name)
 {
     DWORD nBytesStored = 0;
-    if (ast_privilege_obtain (SE_SYSTEM_ENVIRONMENT_NAME)) {
+    if (ast_privilege_obtain (SE_SYSTEM_ENVIRONMENT_NAME) == EXIT_SUCCESS) {
         // "If the function succeeds, the return value is the number of bytes stored in the pBuffer buffer."
         //   -- https://msdn.microsoft.com/en-us/library/windows/desktop/ms724325(v=vs.85).aspx
         nBytesStored = GetFirmwareEnvironmentVariable (name, guid, var, bufSiz);
@@ -128,7 +128,7 @@ static int _ast_get_firmware_type_on_win8_lesser (enum AST_FIRMWARE_TYPE *T)
     void *buffer = malloc (1);
     DWORD ret = 0;
 
-    if (ast_privilege_obtain (SE_SYSTEM_ENVIRONMENT_NAME)) {
+    if (ast_privilege_obtain (SE_SYSTEM_ENVIRONMENT_NAME) == EXIT_SUCCESS) {
         ret = GetFirmwareEnvironmentVariable (EFIDummyName, EFIDummyGUID, buffer, 1);
         if (ret == ERROR_INVALID_FUNCTION) {
             // Not a UEFI machine. XXX: Currently returns BIOS.
