@@ -17,5 +17,6 @@
 
 #include "firmware/firmware.h"
 #include "privilege/privilege.h"
+#include "firmware/readefivar.c"
 
 #endif /* end of include guard: _AST_H */
