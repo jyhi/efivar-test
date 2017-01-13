@@ -5,7 +5,7 @@ AR   = ${HOST}-gcc-ar
 
 DOXYGEN = doxygen
 
-CFLAGS  = -g -ggdb3 -W -Wall
+CFLAGS  = -g -ggdb3 -Wall -Wextra
 LDFLAGS =
 ARFLAGS = rcs
 
