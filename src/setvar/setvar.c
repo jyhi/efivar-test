@@ -130,6 +130,16 @@ int efivar_set (void)
     free (efiTempBuffer);
     efiTempBuffer = NULL;
 
+    // Save Boot#### to NVRAM.
+    if (!SetFirmwareEnvironmentVariable (
+        efiBootOptionName, EFI_GLOBAL_GUID, &efiBootOption,
+        sizeof (uint32_t) + sizeof (uint16_t)
+        + wcslen ((wchar_t *)efiBootOption.Description) + efiBootOption.FilePathListLength // XXX: uint16_t -> wchar_t (although it works)
+        + strlen ((char *)(efiBootOption.OptionalData == NULL ? "" : efiBootOption.OptionalData))))
+    {
+        fprintf (stderr, "We met an error while setting %s... (error %lu) Abort.\n", efiBootOptionName, GetLastError ());
+    }
+
     // Check if BootNext is available to set (not exists).
     // If BootNext exists, there must be something interesting.
     nBytesStored = GetFirmwareEnvironmentVariable ("BootNext", EFI_GLOBAL_GUID, &efiBootNext, sizeof (efiBootNext));
@@ -138,7 +148,12 @@ int efivar_set (void)
         if (GetLastError () == ERROR_ENVVAR_NOT_FOUND)
         {
             // BootNext does not exist, so it is our turn.
-            // TODO
+            // Set BootNext to current Boot####.
+            if (!SetFirmwareEnvironmentVariable ("BootNext", EFI_GLOBAL_GUID, efiBootOptionName, strlen (efiBootOptionName)))
+            {
+                fprintf (stderr, "We met an error while setting BootNext... (error %lu) Abort.", GetLastError ());
+                abort ();
+            }
         }
         else
         {
