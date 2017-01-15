@@ -70,6 +70,11 @@ typedef struct _EFI_LOAD_OPTION {
  */
 int efivar_set (void);
 
+/**
+ * Function filling in an EFI_LOAD_OPTION.
+ */
+int efi_load_option_fill (EFI_LOAD_OPTION *option);
+
 int efivar_set (void)
 {
     uint8_t  efiSecureBoot = 0;
@@ -117,7 +122,15 @@ int efivar_set (void)
             else
             {
                 // Boot option does not exist, so it is ours...
-                // TODO
+                if (efi_load_option_fill (&efiBootOption))
+                {
+                    break;
+                }
+                else
+                {
+                    fprintf(stderr, "Failed to fill in %s... Abort.\n", efiBootOptionName);
+                    exit (1);
+                }
             }
         }
         else
@@ -167,22 +180,38 @@ int efivar_set (void)
         exit (1);
     }
 
-    // Save Boot#### to NVRAM.
-    if (!SetFirmwareEnvironmentVariable (
-        efiBootOptionName, EFI_GLOBAL_GUID, &efiBootOption,
-        sizeof (uint32_t) + sizeof (uint16_t)
-        + wcslen ((wchar_t *)efiBootOption.Description) + efiBootOption.FilePathListLength // XXX: uint16_t -> wchar_t (although it works)
-        + strlen ((char *)(efiBootOption.OptionalData == NULL ? "" : efiBootOption.OptionalData))))
-    {
-        fprintf (stderr, "We met an error while setting %s... (error %lu) Abort.\n", efiBootOptionName, GetLastError ());
-    }
-
-    // Set BootNext to current Boot####.
-    if (!SetFirmwareEnvironmentVariable ("BootNext", EFI_GLOBAL_GUID, efiBootOptionName, strlen (efiBootOptionName)))
-    {
-        fprintf (stderr, "We met an error while setting BootNext... (error %lu) Abort.", GetLastError ());
-        abort ();
-    }
-
+    free (efiBootOptionName);
+    efiBootOptionName = NULL;
     return true;
+}
+
+int efi_load_option_fill (EFI_LOAD_OPTION *option)
+{
+    /* Attributes         = 0x00000001 (LOAD_OPTION_ACTIVE) {4}
+     * FilePathListLength = 0x5e (94) {2}
+     * Description        = "Boot Linux OS from AST" {46}
+     * FilePathList[0] => {42}
+     *   Type       = 0x04 (Media Device Path) {1}
+     *   SubType    = 0x01 (Hard Drive) {1}
+     *   Length[0]  = 0x2a (42) Length[1] = 0x00 {2}
+     *   PartitionNumber    = TODO {4}  << WinAPI (<PARTITION_INFORMATION_EX>.PartitionNumber)
+     *   PartitionStart     = TODO {8}  << GPT Partition Header (StartingLBA) || (WinAPI returns bytes)
+     *   PartitionSize      = TODO {8}  << GPT Partition Header (EndingLBA - StartingLBA + 1) || (WinAPI returns bytes)
+     *   PartitionSignature = TODO {16} << GPT Partition Header (UniquePartitionGUID) || WinAPI (<PARTITION_INFORMATION_EX>.Gpt.PartitionId)
+     *   PartitionFormat    = 0x02 (GUID Partition Table) (XXX) {1}
+     *   SignatureType      = 0x02 (GUID signature) (XXX) {1}
+     * FilePathList[1] => {48}
+     *   Type       = 0x04 (Media Device Path) {1}
+     *   SubType    = 0x04 (File Path) {1}
+     *   Length[0]  = 0x30 (48) Length[1] = 0x00 {2}
+     *   PathName   = "\EFI\AST\astg2x64.efi" {44}
+     * FilePathList[2] => {4}
+     *   Type       = 0x7f (End of Hardware Device Path) {1}
+     *   SubType    = 0xff (End Entire Device Path) {1}
+     *   Length[0]  = 0x04 Length[1] = 0x00 {2}
+     * OptionalData = NULL
+     *
+     * Total length = 146 (0x92)
+     */
+    return false;
 }
